@@ -1,26 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using DG.Tweening;
 
 public class TitleManager : MonoBehaviour
 {
     [Header("타이틀")]
-    [SerializeField] GameObject Title;
-    [SerializeField] GameObject ClickText;
+    [SerializeField] private GameObject Title;
+    [SerializeField] private GameObject ClickText;
     public bool ScreenTouch;
 
     [Header("스테이지")]
-    public int LastClearStage;
-    [SerializeField] GameObject StagePanel;
-    [SerializeField] GameObject StageGroup;
+    private int LastClearStage;
+    [SerializeField] private GameObject StagePanel;
+    [SerializeField] private GameObject StageGroup;
     void Start()
     {
         Title.transform.DOScale(Vector3.one, 1).SetEase(Ease.InQuint);
+        LastClearStage = GMManger.In.LastClear;
         for (int i = 0; i <= LastClearStage;i++)
         {
             StageGroup.transform.GetChild(i).GetChild(0).gameObject.SetActive(false);
+                for (int j = 0;j<3;j++)
+                {
+                    if (GMManger.In.ClearStar[i, j] == true)
+                        StageGroup.transform.GetChild(i).GetChild(1).GetChild(j).GetComponent<Image>().color = new Color(255,255,255);
+                }
         }
         StartCoroutine(TextMove());
     }
@@ -35,6 +42,7 @@ public class TitleManager : MonoBehaviour
             }
         }
     }
+    
     private IEnumerator TextMove()
     {
         ClickText.transform.DOLocalMove(new Vector3(0, -360, 0),2f,false);
@@ -43,8 +51,17 @@ public class TitleManager : MonoBehaviour
         yield return new WaitForSeconds(2f);
         yield return StartCoroutine(TextMove());
     }
-    public void ClickShow(int stage)
+    public void Click(int stage)
     {
+        if(stage <= LastClearStage+1)
+            StartCoroutine(ClickShow(stage));
+    }
+    public IEnumerator ClickShow(int stage)
+    {
+        StartCoroutine(GMManger.In.FadeIn(1));
+        yield return new WaitForSeconds(1f);
+        GMManger.In.stage = stage;
         SceneManager.LoadScene(stage);
+        yield return null;
     }
 }

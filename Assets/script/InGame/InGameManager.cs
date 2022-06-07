@@ -15,11 +15,12 @@ public class InGameManager : MonoBehaviour
     [SerializeField] private GameObject NextStageButton;
     [SerializeField] private GameObject ReGameButton;
     [SerializeField] private GameObject HomeButton;
-    [Header("Shape Object")]
+    [SerializeField] private Text TimerText;
+    [Header("Shape")]
     [SerializeField] private GameObject Shape;
     [SerializeField] private GameObject Shadow;
 
-    private float cleartimer;
+    private float cleartimer = 120;
     private float cleartime;
     private bool pushNextbutton;
     private bool[] clearbool = new bool[5];
@@ -33,9 +34,7 @@ public class InGameManager : MonoBehaviour
             clearbool[value] = true;
             if(clearcount == 5)
             {
-                NextPageButton.transform.DOLocalMove(new Vector3(880, -286, 0), 1, false).SetEase(Ease.OutBounce);
-                cleartime = cleartimer;
-                //Clear();
+                NextPageButton.transform.DOLocalMove(new Vector3(800, -130, 0), 0.5f, false).SetEase(Ease.OutBounce);
             }
         } 
     }
@@ -49,9 +48,31 @@ public class InGameManager : MonoBehaviour
             Shape.transform.GetChild(i).GetComponent<Drag>().ShapeShadow = Shadow.transform.GetChild(i).gameObject;
         }
     }
+    private void Start()
+    {
+        StartCoroutine(StartFadeOut());
+        Invoke("GameOver", cleartimer);
+    }
     private void Update()
     {
-        cleartimer += Time.deltaTime;
+         if(clearcount != 5){cleartimer -= Time.deltaTime;}
+         if(cleartimer > 0){TimerText.text = $"남은 시간  {(int)(cleartimer / 60)} : {(int)(cleartimer%60)}";}
+         else{TimerText.text = $"남은 시간  0 : 0";}
+         if(Input.GetKeyDown(KeyCode.Z))
+        {
+            Debug.Log("z");
+            StartCoroutine("C_NextPage");
+        }
+    }
+    private void GameOver()
+    {
+        StartCoroutine("C_NextPage");
+    }
+    private IEnumerator StartFadeOut()
+    {
+        yield return new WaitForSeconds(1f);
+        StartCoroutine(GMManger.In.FadeOut(1f));
+        yield return null;
     }
     public void NextPage()
     {
@@ -63,8 +84,17 @@ public class InGameManager : MonoBehaviour
     }
     private IEnumerator C_NextPage()
     {
-        NextPageButton.transform.DOLocalMove(new Vector3(1045, -286, 0), 0.5f, false).SetEase(Ease.OutBounce);
+        /*     int savestar = (int)(60 / cleartime);*/
+        if (GMManger.In.stage > GMManger.In.LastClear)
+        {
+            GMManger.In.LastClear = GMManger.In.stage;
+        }
+        for (int i = 0; /*i < savestar && i < 3*/ i <= clearcount / 2; i++)
+        {
+            GMManger.In.ClearStar[GMManger.In.stage - 1, i] = true;
+        }
         yield return new WaitForSeconds(0.5f);
+        Panel.SetActive(true);
         Panel.GetComponent<Image>().DOFade(0.5f, 1);
         yield return new WaitForSeconds(0.5f);
         ClearBackGround.transform.DOLocalMove(Vector3.zero,1f,false).SetEase(Ease.OutBounce);
@@ -74,13 +104,23 @@ public class InGameManager : MonoBehaviour
         ReGameButton.transform.DOLocalMove(new Vector3(480, -300, 0), 1, false).SetEase(Ease.OutBack);
         HomeButton.transform.DOLocalMove(new Vector3(310, -300, 0), 1, false).SetEase(Ease.OutBack);
         yield return new WaitForSeconds(1f);
-        for(int i = 2; i >=  (int)(cleartime / 20); i--)
+        for (int i = 0; /*i < savestar&&*/i<= clearcount/2; i++)
         {
-            StarGroup.transform.GetChild(i + 3).DORotate(new Vector3(0, 0, 180), 0.3f);
-            StarGroup.transform.GetChild(i+3).DORotate(new Vector3(0,0,360),0.3f); 
             StarGroup.transform.GetChild(i+3).DOScale(Vector3.one, 0.6f);
             yield return new WaitForSeconds(0.6f);
         }
         yield return null;
+    }
+    public void Home()
+    {
+        SceneManager.LoadScene(0);
+    }
+    public void NextStage()
+    {
+        SceneManager.LoadScene(GMManger.In.stage += 1);
+    }
+    public void ReGame()
+    {
+        SceneManager.LoadScene(GMManger.In.stage);
     }
 }

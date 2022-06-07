@@ -1,0 +1,37 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Shadow : MonoBehaviour
+{
+    private float movecount;
+    private Rigidbody2D rg;
+    void Start()
+    {
+        rg = GetComponent<Rigidbody2D>();
+        StartCoroutine(MoveShadow());
+    }
+    //-11,3.5
+    private IEnumerator MoveShadow()
+    {
+        while(movecount == 0)
+            movecount = Random.Range(-2, 3);
+        float timer = 0;
+        while (timer < 1)
+        {
+            rg.velocity = new Vector3(movecount, 0, 0) * timer;
+            timer += Time.deltaTime / 2;
+            yield return null;
+        }
+        yield return new WaitForSeconds(Random.Range(0.5f, 3f));
+        yield return StartCoroutine(MoveShadow());
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.tag == "Wall")
+        {
+            movecount = movecount * -1;
+            rg.velocity = new Vector3(movecount, 0, 0);
+        }
+    }
+}
