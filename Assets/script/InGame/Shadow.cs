@@ -16,6 +16,10 @@ public class Shadow : MonoBehaviour
     {
         while(movecount == 0)
             movecount = Random.Range(-2, 3);
+        if(movecount<0)
+            transform.rotation = new Quaternion(0, 180, 0,0);
+        else
+            transform.rotation = new Quaternion(0, 0, 0,0);
         float timer = 0;
         while (timer < 1)
         {
@@ -31,6 +35,10 @@ public class Shadow : MonoBehaviour
         if(collision.tag == "Wall")
         {
             movecount = movecount * -1;
+            if (movecount < 0)
+                transform.rotation = new Quaternion(0, 180, 0, 0);
+            else
+                transform.rotation = new Quaternion(0, 0, 0, 0);
             rg.velocity = new Vector3(movecount, 0, 0);
         }
     }
