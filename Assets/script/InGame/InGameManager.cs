@@ -1,27 +1,31 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using System.Linq;
-using DG.Tweening;
+using UnityEngine.UI;
 public class InGameManager : MonoBehaviour
 {
     public static InGameManager Instence { get; set; }
     [Header("Canvas")]
+    [SerializeField] private Text TimerText;
     [SerializeField] private GameObject Panel;
     [SerializeField] private GameObject NextPageButton;
-    [SerializeField] private GameObject ClearBackGround;
-    [SerializeField] private GameObject StarGroup;
-    [SerializeField] private GameObject NextStageButton;
-    [SerializeField] private GameObject ReGameButton;
-    [SerializeField] private GameObject HomeButton;
-    [SerializeField] private Text TimerText;
+    [SerializeField] GameObject ClearPage;
+    private List<GameObject> ClearPageGroup = new List<GameObject>();
+    //0.BC / 1.Star / 2.Next / 3.Home/ 4.ReGame
+    [Header("Chat")]
+    [SerializeField] private GameObject[] ChatBalloon;
+    [SerializeField] private List<GameObject> Chatsub = new List<GameObject>();
+    [SerializeField] private List<GameObject> ChatContents = new List<GameObject>();
+    [SerializeField] private List<GameObject> ChatContentsGroup = new List<GameObject>();
+
     [Header("Shape")]
     [SerializeField] private GameObject Shape;
     [SerializeField] private GameObject Shadow;
-    //[SerializeField] List<RectTransform> ShapeGroup;
-    [SerializeField] List<GameObject> ShapeGroup;
+    private List<GameObject> ShapeGroup = new List<GameObject>();
+    private List<GameObject> ShadowGroup = new List<GameObject>();
+    public bool Move;
 
     private float cleartimer = 120;
     private float cleartime;
@@ -41,14 +45,18 @@ public class InGameManager : MonoBehaviour
             }
         }
     }
-
-
     void Awake()
     {
         Instence = this;
+        for (int i = 0; i < ClearPage.transform.childCount; i++)
+        {
+            ClearPageGroup.Add(ClearPage.transform.GetChild(i).gameObject);
+        }
         for (int i = 0; i < 5; i++)
         {
-            Shape.transform.GetChild(i).GetComponent<Drag>().ShapeShadow = Shadow.transform.GetChild(i).gameObject;
+            ShapeGroup.Add(Shape.transform.GetChild(i).gameObject);
+            ShadowGroup.Add(Shadow.transform.GetChild(i).gameObject);
+            ShapeGroup[i].GetComponent<Drag>().ShapeShadow = ShadowGroup[i];
         }
     }
     private void Start()
@@ -60,23 +68,85 @@ public class InGameManager : MonoBehaviour
     {
         if (clearcount != 5) { cleartimer -= Time.deltaTime; }
         if (cleartimer > 0) { TimerText.text = $"남은 시간  {(int)(cleartimer / 60)} : {(int)(cleartimer % 60)}"; }
-        else { TimerText.text = $"남은 시간  0 : 0"; }
-        if (Input.GetKeyDown(KeyCode.Z))
+        else { TimerText.text = $"남은 시간  0 : 0"; StartCoroutine("C_NextPage"); }
+    }
+    public IEnumerator Interaction(GameObject myObject, GameObject targetObject)
+    {
+        float timer = 0;
+        Move = true;
+        for (int i = 0; i < ShapeGroup.Count; i++)
         {
-            Debug.Log("z");
-            StartCoroutine("C_NextPage");
+            ShapeGroup[i].GetComponent<Drag>().rg.velocity = Vector2.zero;
+            ShadowGroup[i].GetComponent<Shadow>().rg.velocity = Vector2.zero;
         }
-    }
-    private void GameOver()
-    {
-        StartCoroutine("C_NextPage");
-    }
-    private IEnumerator StartFadeOut()
-    {
-        yield return new WaitForSeconds(1f);
-        StartCoroutine(GMManger.In.FadeOut(1f));
+        Vector3 firstposition = myObject.transform.position;
+        float sidepos = (firstposition.x - targetObject.transform.position.x > 0 ? 1f : -1f);
+        myObject.transform.rotation = Quaternion.Euler(0, 90 + sidepos * 90, 0);
+        targetObject.transform.rotation = Quaternion.Euler(0, 90 + sidepos * -90, 0);
+        while (timer < 1)
+        {
+            myObject.transform.position = Vector3.Lerp(firstposition, targetObject.transform.position + new Vector3(3f * sidepos, 0, 0), timer);
+            timer += Time.deltaTime * 2;
+            yield return null;
+        }
+        switch (Random.Range(0, 1))
+        {
+            case 0://음식 생각
+                int ChatCont = Random.Range(0, ChatContents.Count);
+                GameObject ChatBox = Instantiate(ChatBalloon[1], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
+                GameObject Chatting = Instantiate(ChatContents[ChatCont], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
+                yield return new WaitForSeconds(2.5f);
+                Destroy(ChatBox.gameObject);
+                Destroy(Chatting.gameObject);
+                yield return new WaitForSeconds(1f);
+                GameObject fruit = Instantiate(ChatContents[ChatCont], myObject.transform.position + new Vector3(1f * -sidepos, 10f, 0), transform.rotation);
+                GameObject fruit2 = Instantiate(ChatContents[ChatCont], myObject.transform.position + new Vector3(2f * -sidepos, 11f, 0), transform.rotation);
+                fruit.transform.DOLocalMove((myObject.transform.position + new Vector3(1 * -sidepos, -1, 0)), 1f, false).SetEase(Ease.OutBounce);
+                fruit2.transform.DOLocalMove((myObject.transform.position + new Vector3(2 * -sidepos, -1, 0)), 1.1f, false).SetEase(Ease.OutBounce);
+                yield return new WaitForSeconds(1f);
+                ChatBox = Instantiate(ChatBalloon[0], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
+                Chatting = Instantiate(Chatsub[2], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
+                yield return new WaitForSeconds(1f);
+                Destroy(ChatBox.gameObject);
+                Destroy(Chatting.gameObject);
+                yield return new WaitForSeconds(0.5f);
+                ChatBox = Instantiate(ChatBalloon[0], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
+                Chatting = Instantiate(ChatContentsGroup[0], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
+                yield return new WaitForSeconds(1.5f);
+                GameObject ChatBox2 = Instantiate(ChatBalloon[0], targetObject.transform.position + new Vector3(1.5f * -sidepos, 1f, 0), transform.rotation);
+                GameObject Chatting2 = Instantiate(Chatsub[0], targetObject.transform.position + new Vector3(1.5f * -sidepos, 1f, 0), transform.rotation);
+                yield return new WaitForSeconds(2f);
+                Destroy(ChatBox.gameObject);
+                Destroy(Chatting.gameObject);
+                Destroy(ChatBox2.gameObject);
+                Destroy(Chatting2.gameObject);
+                fruit.transform.DOLocalMove(myObject.transform.position, 0.5f, false).SetEase(Ease.OutCubic);
+                fruit2.transform.DOLocalMove(targetObject.transform.position, 0.5f, false).SetEase(Ease.OutCubic);
+                timer = 0;
+                while (timer < 1)
+                {
+                    fruit.GetComponent<SpriteRenderer>().color -= new Color(0, 0, 0, timer*2);
+                    fruit2.GetComponent<SpriteRenderer>().color -= new Color(0, 0, 0, timer*2);
+                    timer += Time.deltaTime * 2;
+                    yield return null;
+                }
+                Destroy(fruit);
+                Destroy(fruit2);
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            case 4:
+                break;
+
+        }//행동 랜덤 뽑기
+
         yield return null;
-    }
+    }//상호작용
+    #region NextPage
     public void NextPage()
     {
         if (pushNextbutton == false)
@@ -84,7 +154,12 @@ public class InGameManager : MonoBehaviour
             StartCoroutine("C_NextPage");
             pushNextbutton = true;
         }
-    }
+    }//클리어 후 버튼
+    private void GameOver()
+    {
+        StartCoroutine("C_NextPage");
+    }//시간초과
+
     private IEnumerator C_NextPage()
     {
         /*     int savestar = (int)(60 / cleartime);*/
@@ -100,20 +175,22 @@ public class InGameManager : MonoBehaviour
         Panel.SetActive(true);
         Panel.GetComponent<Image>().DOFade(0.5f, 1);
         yield return new WaitForSeconds(0.5f);
-        ClearBackGround.transform.DOLocalMove(Vector3.zero, 1f, false).SetEase(Ease.OutBounce);
+        ClearPageGroup[0].transform.DOLocalMove(Vector3.zero, 1f, false).SetEase(Ease.OutBounce);
         yield return new WaitForSeconds(1f);
-        StarGroup.transform.DOLocalMove(new Vector3(0, 300, 0), 1, false).SetEase(Ease.OutBack);
-        NextStageButton.transform.DOLocalMove(new Vector3(650, -300, 0), 1, false).SetEase(Ease.OutBack);
-        ReGameButton.transform.DOLocalMove(new Vector3(480, -300, 0), 1, false).SetEase(Ease.OutBack);
-        HomeButton.transform.DOLocalMove(new Vector3(310, -300, 0), 1, false).SetEase(Ease.OutBack);
+        ClearPageGroup[1].transform.DOLocalMove(new Vector3(0, 300, 0), 1, false).SetEase(Ease.OutBack);
+        ClearPageGroup[2].transform.DOLocalMove(new Vector3(650, -300, 0), 1, false).SetEase(Ease.OutBack);
+        ClearPageGroup[3].transform.DOLocalMove(new Vector3(310, -300, 0), 1, false).SetEase(Ease.OutBack);
+        ClearPageGroup[4].transform.DOLocalMove(new Vector3(480, -300, 0), 1, false).SetEase(Ease.OutBack);
         yield return new WaitForSeconds(1f);
         for (int i = 0; /*i < savestar&&*/i <= clearcount / 2; i++)
         {
-            StarGroup.transform.GetChild(i + 3).DOScale(Vector3.one, 0.6f);
+            ClearPageGroup[1].transform.GetChild(i + 3).DOScale(Vector3.one, 0.6f);
             yield return new WaitForSeconds(0.6f);
         }
         yield return null;
-    }
+    }//클리어창 애니메이션
+    #endregion
+    #region ButtonScript
     public void Home()
     {
         SceneManager.LoadScene(0);
@@ -126,10 +203,18 @@ public class InGameManager : MonoBehaviour
     {
         SceneManager.LoadScene(GMManger.In.stage);
     }
+    #endregion
+    private IEnumerator StartFadeOut()
+    {
+        yield return new WaitForSeconds(1f);
+        StartCoroutine(GMManger.In.FadeOut(1f));
+        yield return null;
+    }
     public void OrderLayer()
     {
         int count = 0;
-        ShapeGroup.Sort((GameObject x, GameObject y) => {
+        ShapeGroup.Sort((GameObject x, GameObject y) =>
+        {
             return x.transform.localPosition.y.CompareTo(y.transform.localPosition.y);//y가 낮은순으로 정렬
         });
         ShapeGroup.Reverse();
@@ -137,5 +222,5 @@ public class InGameManager : MonoBehaviour
         {
             OrderLayerSetting.GetComponent<SpriteRenderer>().sortingOrder = count++;
         }
-    }
+    }//Y값에 따라 layer변경
 }
