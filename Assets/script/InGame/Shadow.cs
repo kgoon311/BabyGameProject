@@ -29,9 +29,9 @@ public class Shadow : MonoBehaviour
                 timer += Time.deltaTime / 2;
                 yield return null;
             }
-            yield return new WaitForSeconds(Random.Range(0.5f, 3f));
-            yield return StartCoroutine(MoveShadow());
         }
+        yield return new WaitForSeconds(Random.Range(0.5f, 3f));
+        yield return StartCoroutine(MoveShadow());
         yield return null;
     }
     private void OnTriggerEnter2D(Collider2D collision)

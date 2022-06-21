@@ -16,7 +16,7 @@ public class InGameManager : MonoBehaviour
     //0.BC / 1.Star / 2.Next / 3.Home/ 4.ReGame
     [Header("Chat")]
     [SerializeField] private GameObject[] ChatBalloon;
-    [SerializeField] private List<GameObject> Chatsub = new List<GameObject>();
+    [SerializeField] private List<GameObject> Chatsurve = new List<GameObject>();
     [SerializeField] private List<GameObject> ChatContents = new List<GameObject>();
     [SerializeField] private List<GameObject> ChatContentsGroup = new List<GameObject>();
 
@@ -89,9 +89,10 @@ public class InGameManager : MonoBehaviour
             timer += Time.deltaTime * 2;
             yield return null;
         }
-        switch (Random.Range(0, 1))
+        switch (Random.Range(1, 2))
         {
-            case 0://음식 생각
+            case 0:
+                #region 음식 생각
                 int ChatCont = Random.Range(0, ChatContents.Count);
                 GameObject ChatBox = Instantiate(ChatBalloon[1], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
                 GameObject Chatting = Instantiate(ChatContents[ChatCont], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
@@ -105,7 +106,7 @@ public class InGameManager : MonoBehaviour
                 fruit2.transform.DOLocalMove((myObject.transform.position + new Vector3(2 * -sidepos, -1, 0)), 1.1f, false).SetEase(Ease.OutBounce);
                 yield return new WaitForSeconds(1f);
                 ChatBox = Instantiate(ChatBalloon[0], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
-                Chatting = Instantiate(Chatsub[2], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
+                Chatting = Instantiate(Chatsurve[2], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
                 yield return new WaitForSeconds(1f);
                 Destroy(ChatBox.gameObject);
                 Destroy(Chatting.gameObject);
@@ -113,27 +114,77 @@ public class InGameManager : MonoBehaviour
                 ChatBox = Instantiate(ChatBalloon[0], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
                 Chatting = Instantiate(ChatContentsGroup[0], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
                 yield return new WaitForSeconds(1.5f);
-                GameObject ChatBox2 = Instantiate(ChatBalloon[0], targetObject.transform.position + new Vector3(1.5f * -sidepos, 1f, 0), transform.rotation);
-                GameObject Chatting2 = Instantiate(Chatsub[0], targetObject.transform.position + new Vector3(1.5f * -sidepos, 1f, 0), transform.rotation);
-                yield return new WaitForSeconds(2f);
-                Destroy(ChatBox.gameObject);
-                Destroy(Chatting.gameObject);
-                Destroy(ChatBox2.gameObject);
-                Destroy(Chatting2.gameObject);
-                fruit.transform.DOLocalMove(myObject.transform.position, 0.5f, false).SetEase(Ease.OutCubic);
-                fruit2.transform.DOLocalMove(targetObject.transform.position, 0.5f, false).SetEase(Ease.OutCubic);
-                timer = 0;
-                while (timer < 1)
+                GameObject ChatBox2;
+                GameObject Chatting2;
+                if (Random.Range(0, 2) == 0)
                 {
-                    fruit.GetComponent<SpriteRenderer>().color -= new Color(0, 0, 0, timer*2);
-                    fruit2.GetComponent<SpriteRenderer>().color -= new Color(0, 0, 0, timer*2);
-                    timer += Time.deltaTime * 2;
-                    yield return null;
-                }
-                Destroy(fruit);
-                Destroy(fruit2);
+                    ChatBox2 = Instantiate(ChatBalloon[0], targetObject.transform.position + new Vector3(1.5f * -sidepos, 1f, 0), transform.rotation);
+                    Chatting2 = Instantiate(Chatsurve[0], targetObject.transform.position + new Vector3(1.5f * -sidepos, 1f, 0), transform.rotation);
+                    yield return new WaitForSeconds(2f);
+                    Destroy(ChatBox.gameObject);
+                    Destroy(Chatting.gameObject);
+                    Destroy(ChatBox2.gameObject);
+                    Destroy(Chatting2.gameObject);
+                    fruit.transform.DOLocalMove(myObject.transform.position, 1f, false).SetEase(Ease.OutCubic);
+                    fruit2.transform.DOLocalMove(targetObject.transform.position, 1f, false).SetEase(Ease.OutCubic);
+                    timer = 0;
+                    while (timer < 1)
+                    {
+                        fruit.GetComponent<SpriteRenderer>().color -= new Color(0, 0, 0, timer);
+                        fruit2.GetComponent<SpriteRenderer>().color -= new Color(0, 0, 0, timer);
+                        timer += Time.deltaTime;
+                        yield return null;
+                    }
+                    yield return new WaitForSeconds(0.5f);
+                    Destroy(fruit);
+                    Destroy(fruit2);
+                }//수락
+                else
+                {
+                    ChatBox2 = Instantiate(ChatBalloon[0], targetObject.transform.position + new Vector3(1.5f * -sidepos, 1f, 0), transform.rotation);
+                    Chatting2 = Instantiate(Chatsurve[1], targetObject.transform.position + new Vector3(1.5f * -sidepos, 1f, 0), transform.rotation);
+                    yield return new WaitForSeconds(1f);
+                    GameObject Sad = Instantiate(Chatsurve[3], myObject.transform.position + Vector3.up * 0.5f, transform.rotation);
+                    yield return new WaitForSeconds(1f);
+                    Destroy(ChatBox.gameObject);
+                    Destroy(Chatting.gameObject);
+                    Destroy(Sad.gameObject);
+                    Destroy(ChatBox2.gameObject);
+                    Destroy(Chatting2.gameObject);
+                    timer = 0;
+                    while (timer < 1)
+                    {
+                        fruit.GetComponent<SpriteRenderer>().color -= new Color(0, 0, 0, timer * 2);
+                        fruit2.GetComponent<SpriteRenderer>().color -= new Color(0, 0, 0, timer * 2);
+                        timer += Time.deltaTime * 2;
+                        yield return null;
+                    }
+                    yield return new WaitForSeconds(0.5f);
+                    Destroy(fruit);
+                    Destroy(fruit2);
+                }//거절
+                #endregion
                 break;
             case 1:
+                #region 점프
+                targetObject.transform.DOMove(targetObject.transform.position + Vector3.up, 1);
+                yield return new WaitForSeconds(1f);
+                myObject.transform.DOMove(myObject.transform.position + Vector3.up, 1);
+                targetObject.transform.DOMove(targetObject.transform.position + Vector3.down, 1).SetEase(Ease.OutBounce);
+                yield return new WaitForSeconds(1f);
+                targetObject.transform.DOMove(targetObject.transform.position + Vector3.up, 1);
+                myObject.transform.DOMove(myObject.transform.position + Vector3.down, 1).SetEase(Ease.OutBounce);
+                yield return new WaitForSeconds(1f);
+                myObject.transform.DOMove(myObject.transform.position + Vector3.up, 1);
+                targetObject.transform.DOMove(targetObject.transform.position + Vector3.down, 1).SetEase(Ease.OutBounce);
+                yield return new WaitForSeconds(1f);
+                targetObject.transform.DOMove(targetObject.transform.position + Vector3.up, 1);
+                myObject.transform.DOMove(myObject.transform.position + Vector3.down, 1).SetEase(Ease.OutBounce);
+                yield return new WaitForSeconds(1f);
+                targetObject.transform.DOMove(targetObject.transform.position + Vector3.down, 1).SetEase(Ease.OutBounce);
+                yield return new WaitForSeconds(1f);
+                yield return null;
+                #endregion
                 break;
             case 2:
                 break;
@@ -143,7 +194,7 @@ public class InGameManager : MonoBehaviour
                 break;
 
         }//행동 랜덤 뽑기
-
+        Move = false;
         yield return null;
     }//상호작용
     #region NextPage

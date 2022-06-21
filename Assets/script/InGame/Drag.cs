@@ -17,10 +17,7 @@ public class Drag : MonoBehaviour
     }
     private void Update()
     {
-        if (finish)
-        {
-
-        }
+       
     }
     private void OnMouseDown()
     {
@@ -43,6 +40,7 @@ public class Drag : MonoBehaviour
             if (overlap_Shape == true && finish == false)
             {
                 finish = true;
+                gameObject.layer.ToString("Animal");
                 StartCoroutine(Move());
                 transform.position = ShapeShadow.transform.position;
                 ShapeShadow.gameObject.SetActive(false);
@@ -106,9 +104,9 @@ public class Drag : MonoBehaviour
                 timer += Time.deltaTime / 2;
                 yield return null;
             }
+        }
             yield return new WaitForSeconds(Random.Range(0.5f, 3f));
             yield return StartCoroutine(Move());
-        }
         yield return null;
     }
 }
