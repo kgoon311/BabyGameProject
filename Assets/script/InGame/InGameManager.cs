@@ -89,7 +89,7 @@ public class InGameManager : MonoBehaviour
             timer += Time.deltaTime * 2;
             yield return null;
         }
-        switch (Random.Range(1, 2))
+        switch (Random.Range(2, 3))
         {
             case 0:
                 #region À½½Ä »ý°¢
@@ -167,30 +167,65 @@ public class InGameManager : MonoBehaviour
                 break;
             case 1:
                 #region Á¡ÇÁ
-                targetObject.transform.DOMove(targetObject.transform.position + Vector3.up, 1);
-                yield return new WaitForSeconds(1f);
-                myObject.transform.DOMove(myObject.transform.position + Vector3.up, 1);
-                targetObject.transform.DOMove(targetObject.transform.position + Vector3.down, 1).SetEase(Ease.OutBounce);
-                yield return new WaitForSeconds(1f);
-                targetObject.transform.DOMove(targetObject.transform.position + Vector3.up, 1);
-                myObject.transform.DOMove(myObject.transform.position + Vector3.down, 1).SetEase(Ease.OutBounce);
-                yield return new WaitForSeconds(1f);
-                myObject.transform.DOMove(myObject.transform.position + Vector3.up, 1);
-                targetObject.transform.DOMove(targetObject.transform.position + Vector3.down, 1).SetEase(Ease.OutBounce);
-                yield return new WaitForSeconds(1f);
-                targetObject.transform.DOMove(targetObject.transform.position + Vector3.up, 1);
-                myObject.transform.DOMove(myObject.transform.position + Vector3.down, 1).SetEase(Ease.OutBounce);
-                yield return new WaitForSeconds(1f);
-                targetObject.transform.DOMove(targetObject.transform.position + Vector3.down, 1).SetEase(Ease.OutBounce);
-                yield return new WaitForSeconds(1f);
+                targetObject.transform.DOMove(targetObject.transform.position + Vector3.up, 0.5f);
+                yield return new WaitForSeconds(0.5f);
+                myObject.transform.DOMove(myObject.transform.position + Vector3.up, 0.5f);
+                targetObject.transform.DOMove(targetObject.transform.position + Vector3.down, 0.5f).SetEase(Ease.OutBounce);
+                yield return new WaitForSeconds(0.5f);
+                targetObject.transform.DOMove(targetObject.transform.position + Vector3.up, 0.5f);
+                myObject.transform.DOMove(myObject.transform.position + Vector3.down, 0.5f).SetEase(Ease.OutBounce);
+                yield return new WaitForSeconds(0.5f);
+                myObject.transform.DOMove(myObject.transform.position + Vector3.up, 0.5f);
+                targetObject.transform.DOMove(targetObject.transform.position + Vector3.down, 0.5f).SetEase(Ease.OutBounce);
+                yield return new WaitForSeconds(0.5f);
+                targetObject.transform.DOMove(targetObject.transform.position + Vector3.up, 0.5f);
+                myObject.transform.DOMove(myObject.transform.position + Vector3.down, 0.5f).SetEase(Ease.OutBounce);
+                yield return new WaitForSeconds(0.5f);
+                targetObject.transform.DOMove(targetObject.transform.position + Vector3.down, 0.5f).SetEase(Ease.OutBounce);
+                yield return new WaitForSeconds(0.5f);
                 yield return null;
                 #endregion
                 break;
             case 2:
+                #region Ãã1
+                timer = 0;
+                for(int i = 0;i<7;i++)
+                {
+                    if(i<2)
+                    {
+                        myObject.transform.DOScaleY(0.7f, 0.5f);
+                        yield return null;
+                        myObject.transform.DOScaleY(1.3f,1f);
+                        yield return null;
+                        myObject.transform.DOScaleY(1f, 0.5f);
+                        yield return null;
+                    }
+                    else if(i<3)
+                    {
+                        myObject.transform.DOScaleY(0.7f, 0.5f);
+                        targetObject.transform.DOScaleY(1.3f, 0.5f);
+                    }
+                    else
+                    {
+                       while(timer < 1)
+                        {
+                            timer += Time.deltaTime;
+                            myObject.transform.localScale += new Vector3(Mathf.Lerp((i % 2 == 0) ? 1.3f : 0.7f, (i%2 == 0) ? 0.7f:1.3f, timer), 0, 0);
+                            targetObject.transform.localScale += new Vector3(Mathf.Lerp((i % 2 == 0) ? 0.7f : 1.3f, (i%2 == 0) ? 0.7f:1.3f, timer), 0, 0);
+                        }
+                    }
+                }
+                #endregion
                 break;
             case 3:
+                #region .
+
+                #endregion
                 break;
             case 4:
+                #region .
+
+                #endregion
                 break;
 
         }//Çàµ¿ ·£´ý »Ì±â
