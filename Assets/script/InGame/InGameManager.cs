@@ -12,6 +12,7 @@ public class InGameManager : MonoBehaviour
     [SerializeField] private GameObject Panel;
     [SerializeField] private GameObject NextPageButton;
     [SerializeField] GameObject ClearPage;
+    [SerializeField] GameObject PausePanel;
     private List<GameObject> ClearPageGroup = new List<GameObject>();
     //0.BC / 1.Star / 2.Next / 3.Home/ 4.ReGame
     [Header("Chat")]
@@ -32,6 +33,7 @@ public class InGameManager : MonoBehaviour
     private bool pushNextbutton;
     private bool[] clearbool = new bool[5];
     private int clearcount = 0;
+    private bool Over;
     public int ClearCount
     {
         get { return clearcount; }
@@ -62,13 +64,12 @@ public class InGameManager : MonoBehaviour
     private void Start()
     {
         StartCoroutine(StartFadeOut());
-        Invoke("GameOver", cleartimer);
     }
     private void Update()
     {
         if (clearcount != 5) { cleartimer -= Time.deltaTime; }
-        if (cleartimer > 0) { TimerText.text = $"남은 시간  {(int)(cleartimer / 60)} : {(int)(cleartimer % 60)}"; }
-        else { TimerText.text = $"남은 시간  0 : 0"; StartCoroutine("C_NextPage"); }
+        if (cleartimer > 0) { TimerText.text = $"남은 시간  {(int)(cleartimer / 60)} : {(int)(cleartimer % 60)}";}
+        else { TimerText.text = $"남은 시간  0 : 0"; StartCoroutine("C_NextPage"); GameOver(); }
     }
     public IEnumerator Interaction(GameObject myObject, GameObject targetObject)
     {
@@ -89,7 +90,7 @@ public class InGameManager : MonoBehaviour
             timer += Time.deltaTime * 2;
             yield return null;
         }
-        switch (Random.Range(2, 3))
+        switch (Random.Range(0,4))
         {
             case 0:
                 #region 음식 생각
@@ -193,42 +194,50 @@ public class InGameManager : MonoBehaviour
                 {
                     if(i<2)
                     {
-                        myObject.transform.DOScaleY(0.7f, 0.5f);
-                        yield return null;
-                        myObject.transform.DOScaleY(1.3f,1f);
-                        yield return null;
-                        myObject.transform.DOScaleY(1f, 0.5f);
-                        yield return null;
-                    }
-                    else if(i<3)
-                    {
-                        myObject.transform.DOScaleY(0.7f, 0.5f);
-                        targetObject.transform.DOScaleY(1.3f, 0.5f);
+                        myObject.transform.DOScaleY(0.8f, 0.1f);
+                        yield return new WaitForSeconds(0.1f);
+                        myObject.transform.DOScaleY(1.2f,0.2f);
+                        yield return new WaitForSeconds(0.2f);
+                        myObject.transform.DOScaleY(1f, 0.1f);
+                        yield return new WaitForSeconds(0.1f);  
                     }
                     else
                     {
-                       while(timer < 1)
-                        {
-                            timer += Time.deltaTime;
-                            myObject.transform.localScale += new Vector3(Mathf.Lerp((i % 2 == 0) ? 1.3f : 0.7f, (i%2 == 0) ? 0.7f:1.3f, timer), 0, 0);
-                            targetObject.transform.localScale += new Vector3(Mathf.Lerp((i % 2 == 0) ? 0.7f : 1.3f, (i%2 == 0) ? 0.7f:1.3f, timer), 0, 0);
-                        }
+                        myObject.transform.DOScaleY(0.8f, 0.1f);
+                        targetObject.transform.DOScaleY(1.2f, 0.1f);
+                        yield return new WaitForSeconds(0.1f);
+                        myObject.transform.DOScaleY(1.2f, 0.2f);
+                        targetObject.transform.DOScaleY(0.8f, 0.2f);
+                        yield return new WaitForSeconds(0.2f);
+                        myObject.transform.DOScaleY(1f, 0.1f);
+                        targetObject.transform.DOScaleY(1f, 0.1f);
+                        yield return new WaitForSeconds(0.1f);
                     }
+
                 }
                 #endregion
                 break;
             case 3:
-                #region .
-
+                #region 춤 2
+                myObject.transform.DORotate(new Vector3(0,0,20),0.25f);
+                targetObject.transform.DORotate(new Vector3(0,0,20),0.25f);
+                yield return new WaitForSeconds(0.25f);
+                for(int i =0;i<3;i++)
+                {
+                myObject.transform.DORotate(new Vector3(0,0,-20),0.5f);
+                targetObject.transform.DORotate(new Vector3(0,0,-20),0.5f);
+                yield return new WaitForSeconds(0.5f);
+                myObject.transform.DORotate(new Vector3(0,0,20),0.5f);
+                targetObject.transform.DORotate(new Vector3(0,0,20),0.5f);
+                yield return new WaitForSeconds(0.5f);
+                }
+                myObject.transform.DORotate(new Vector3(0,0,0),0.25f);
+                targetObject.transform.DORotate(new Vector3(0,0,0),0.25f);
+                yield return new WaitForSeconds(0.25f);
                 #endregion
                 break;
-            case 4:
-                #region .
-
-                #endregion
-                break;
-
         }//행동 랜덤 뽑기
+        targetObject.GetComponent<Drag>().ExitScreen();
         Move = false;
         yield return null;
     }//상호작용
@@ -243,9 +252,10 @@ public class InGameManager : MonoBehaviour
     }//클리어 후 버튼
     private void GameOver()
     {
-        StartCoroutine("C_NextPage");
+        if (Over == true)
+            StartCoroutine("C_NextPage");
+        Over = true;
     }//시간초과
-
     private IEnumerator C_NextPage()
     {
         /*     int savestar = (int)(60 / cleartime);*/
@@ -259,7 +269,13 @@ public class InGameManager : MonoBehaviour
         }
         yield return new WaitForSeconds(0.5f);
         Panel.SetActive(true);
-        Panel.GetComponent<Image>().DOFade(0.5f, 1);
+        float timer = 0;
+        while (timer < 1)
+        {
+            timer += Time.deltaTime;
+            Image PanelImage = Panel.GetComponent<Image>();
+            Panel.GetComponent<Image>().color = new Color();
+        }
         yield return new WaitForSeconds(0.5f);
         ClearPageGroup[0].transform.DOLocalMove(Vector3.zero, 1f, false).SetEase(Ease.OutBounce);
         yield return new WaitForSeconds(1f);
@@ -309,4 +325,20 @@ public class InGameManager : MonoBehaviour
             OrderLayerSetting.GetComponent<SpriteRenderer>().sortingOrder = count++;
         }
     }//Y값에 따라 layer변경
+    public void PauseButton()
+    {
+        StartCoroutine("PauseButton");
+    }
+    public IEnumerator Pause()
+    {
+        float timer = 0;
+        while (timer < 1)
+        {
+            timer += Time.deltaTime*2;
+            Panel.GetComponent<Image>().color = new Color(0, 0, 0, Mathf.Lerp(0, 0.3f, timer));
+            yield return null;
+        }
+        PausePanel.transform.DOLocalMove(Vector3.zero, 1).SetEase(Ease.OutBack);
+        yield return null;
+    }
 }

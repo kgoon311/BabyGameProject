@@ -11,13 +11,15 @@ public class Drag : MonoBehaviour
     private float movecount;
     [Header("모양")]
     public GameObject ShapeShadow;
+    private RectTransform MyRectTransform;
     private void Start()
     {
         rg = GetComponent<Rigidbody2D>();
+        MyRectTransform = GetComponent<RectTransform>();
     }
     private void Update()
     {
-       
+        
     }
     private void OnMouseDown()
     {
@@ -37,6 +39,7 @@ public class Drag : MonoBehaviour
         if (InGameManager.Instence.Move == false)
         {
             InGameManager.Instence.OrderLayer();
+            ExitScreen();
             if (overlap_Shape == true && finish == false)
             {
                 finish = true;
@@ -86,7 +89,25 @@ public class Drag : MonoBehaviour
         overlap_Shape = false;
     }
 
-    
+    public void ExitScreen()
+    {
+        if (MyRectTransform.anchoredPosition.x > 16)
+        {
+            MyRectTransform.anchoredPosition = new Vector3(16, MyRectTransform.anchoredPosition.y, 0);
+        }
+        if (MyRectTransform.anchoredPosition.x < 3)
+        {
+            MyRectTransform.anchoredPosition = new Vector3(3, MyRectTransform.anchoredPosition.y, 0);
+        }
+        if (MyRectTransform.anchoredPosition.y > 3)
+        {
+            MyRectTransform.anchoredPosition = new Vector3(MyRectTransform.anchoredPosition.x, 3f, 0);
+        }
+        if (MyRectTransform.anchoredPosition.y < -1.5)
+        {
+            MyRectTransform.anchoredPosition = new Vector3(MyRectTransform.anchoredPosition.x, -1.5f, 0);
+        }
+    }//화면 밖으로 이동 시 안쪽으로
     private IEnumerator Move()
     {
         if (InGameManager.Instence.Move == false)
