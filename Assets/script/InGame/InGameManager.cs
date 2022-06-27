@@ -26,7 +26,7 @@ public class InGameManager : MonoBehaviour
     [SerializeField] private GameObject Shadow;
     private List<GameObject> ShapeGroup = new List<GameObject>();
     private List<GameObject> ShadowGroup = new List<GameObject>();
-    public bool Move;
+    public bool StopTime;
 
     private float cleartimer = 120;
     private float cleartime;
@@ -67,19 +67,15 @@ public class InGameManager : MonoBehaviour
     }
     private void Update()
     {
-        if (clearcount != 5) { cleartimer -= Time.deltaTime; }
+        if (clearcount != 5 && StopTime == false) { cleartimer -= Time.deltaTime; }
         if (cleartimer > 0) { TimerText.text = $"남은 시간  {(int)(cleartimer / 60)} : {(int)(cleartimer % 60)}";}
         else { TimerText.text = $"남은 시간  0 : 0"; StartCoroutine("C_NextPage"); GameOver(); }
     }
     public IEnumerator Interaction(GameObject myObject, GameObject targetObject)
     {
         float timer = 0;
-        Move = true;
-        for (int i = 0; i < ShapeGroup.Count; i++)
-        {
-            ShapeGroup[i].GetComponent<Drag>().rg.velocity = Vector2.zero;
-            ShadowGroup[i].GetComponent<Shadow>().rg.velocity = Vector2.zero;
-        }
+        StopTime = true;
+        
         Vector3 firstposition = myObject.transform.position;
         float sidepos = (firstposition.x - targetObject.transform.position.x > 0 ? 1f : -1f);
         myObject.transform.rotation = Quaternion.Euler(0, 90 + sidepos * 90, 0);
@@ -238,10 +234,30 @@ public class InGameManager : MonoBehaviour
                 break;
         }//행동 랜덤 뽑기
         targetObject.GetComponent<Drag>().ExitScreen();
-        Move = false;
+        StopTime = false;
         yield return null;
     }//상호작용
-    #region NextPage
+    public void OrderLayer()
+    {
+        int count = 0;
+        ShapeGroup.Sort((GameObject x, GameObject y) =>
+        {
+            return x.transform.localPosition.y.CompareTo(y.transform.localPosition.y);//y가 낮은순으로 정렬
+        });
+        ShapeGroup.Reverse();
+        foreach (GameObject OrderLayerSetting in ShapeGroup)
+        {
+            OrderLayerSetting.GetComponent<SpriteRenderer>().sortingOrder = count++;
+        }
+    }//Y값에 따라 layer변경
+    private IEnumerator StartFadeOut()
+    {
+        yield return new WaitForSeconds(1f);
+        StartCoroutine(GMManger.In.FadeOut(1f));
+        yield return null;
+    }
+
+    #region EndPage
     public void NextPage()
     {
         if (pushNextbutton == false)
@@ -292,6 +308,7 @@ public class InGameManager : MonoBehaviour
         yield return null;
     }//클리어창 애니메이션
     #endregion
+
     #region ButtonScript
     public void Home()
     {
@@ -306,39 +323,42 @@ public class InGameManager : MonoBehaviour
         SceneManager.LoadScene(GMManger.In.stage);
     }
     #endregion
-    private IEnumerator StartFadeOut()
-    {
-        yield return new WaitForSeconds(1f);
-        StartCoroutine(GMManger.In.FadeOut(1f));
-        yield return null;
-    }
-    public void OrderLayer()
-    {
-        int count = 0;
-        ShapeGroup.Sort((GameObject x, GameObject y) =>
-        {
-            return x.transform.localPosition.y.CompareTo(y.transform.localPosition.y);//y가 낮은순으로 정렬
-        });
-        ShapeGroup.Reverse();
-        foreach (GameObject OrderLayerSetting in ShapeGroup)
-        {
-            OrderLayerSetting.GetComponent<SpriteRenderer>().sortingOrder = count++;
-        }
-    }//Y값에 따라 layer변경
+
     public void PauseButton()
     {
-        StartCoroutine("PauseButton");
+        StartCoroutine("Pause");
     }
     public IEnumerator Pause()
     {
+        StopTime = true;
         float timer = 0;
+        Panel.SetActive(true);
+        PausePanel.transform.DOLocalMove(Vector3.zero, 1).SetEase(Ease.OutBack);
         while (timer < 1)
         {
             timer += Time.deltaTime*2;
-            Panel.GetComponent<Image>().color = new Color(0, 0, 0, Mathf.Lerp(0, 0.3f, timer));
+            Panel.GetComponent<Image>().color = new Color(0, 0, 0, Mathf.Lerp(0, 0.5f, timer));
             yield return null;
         }
-        PausePanel.transform.DOLocalMove(Vector3.zero, 1).SetEase(Ease.OutBack);
         yield return null;
     }
+     public void CountinueButton()
+    {
+        StartCoroutine("Countinue");
+    }
+    public IEnumerator Countinue()
+    {
+        float timer = 0;
+        PausePanel.transform.DOLocalMove(Vector3.up*1025, 1).SetEase(Ease.OutBack);
+        while (timer < 1)
+        {
+            timer += Time.deltaTime*2;
+            Panel.GetComponent<Image>().color = new Color(0, 0, 0, Mathf.Lerp(0, 0f, timer));
+            yield return null;
+        }
+        Panel.SetActive(false);
+        StopTime = false;
+        yield return null;
+    }
+
 }

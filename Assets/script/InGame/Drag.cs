@@ -7,7 +7,7 @@ public class Drag : MonoBehaviour
     private bool overlap_Shape;
     private bool finish;
     private Vector3 firstPos;
-    [HideInInspector]public Rigidbody2D rg;
+    [HideInInspector] public Rigidbody2D rg;
     private float movecount;
     [Header("모양")]
     public GameObject ShapeShadow;
@@ -19,7 +19,8 @@ public class Drag : MonoBehaviour
     }
     private void Update()
     {
-        
+        if (InGameManager.Instence.StopTime == true)
+            rg.velocity = Vector3.zero;
     }
     private void OnMouseDown()
     {
@@ -27,7 +28,7 @@ public class Drag : MonoBehaviour
     }
     private void OnMouseDrag()
     {
-        if (InGameManager.Instence.Move == false)
+        if (InGameManager.Instence.StopTime == false)
         {
             InGameManager.Instence.OrderLayer();
             Vector3 mousePosition = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10);
@@ -36,7 +37,7 @@ public class Drag : MonoBehaviour
     }
     private void OnMouseUp()
     {
-        if (InGameManager.Instence.Move == false)
+        if (InGameManager.Instence.StopTime == false)
         {
             InGameManager.Instence.OrderLayer();
             ExitScreen();
@@ -74,7 +75,7 @@ public class Drag : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.tag == "Wall"&&InGameManager.Instence.Move == false)
+        if (collision.tag == "Wall" && InGameManager.Instence.StopTime == false)
         {
             movecount = movecount * -1;
             if (movecount < 0)
@@ -110,7 +111,7 @@ public class Drag : MonoBehaviour
     }//화면 밖으로 이동 시 안쪽으로
     private IEnumerator Move()
     {
-        if (InGameManager.Instence.Move == false)
+        if (InGameManager.Instence.StopTime == false)
         {
             while (movecount == 0)
                 movecount = Random.Range(-2, 3);
@@ -119,15 +120,15 @@ public class Drag : MonoBehaviour
             else
                 transform.rotation = new Quaternion(0, 0, 0, 0);
             float timer = 0;
-            while (timer < 1&& InGameManager.Instence.Move == false)
+            while (timer < 1 && InGameManager.Instence.StopTime == false)
             {
                 rg.velocity = new Vector3(movecount, 0, 0) * timer;
                 timer += Time.deltaTime / 2;
                 yield return null;
             }
         }
-            yield return new WaitForSeconds(Random.Range(0.5f, 3f));
-            yield return StartCoroutine(Move());
+        yield return new WaitForSeconds(Random.Range(0.5f, 3f));
+        yield return StartCoroutine(Move());
         yield return null;
     }
 }
