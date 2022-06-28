@@ -28,6 +28,10 @@ public class InGameManager : MonoBehaviour
     private List<GameObject> ShadowGroup = new List<GameObject>();
     public bool StopTime;
 
+
+    [SerializeField] float[] ChatPos = new float[2];
+    [SerializeField] float[] ChatContPos = new float[2];
+
     private float cleartimer = 120;
     private float cleartime;
     private bool pushNextbutton;
@@ -68,31 +72,35 @@ public class InGameManager : MonoBehaviour
     private void Update()
     {
         if (clearcount != 5 && StopTime == false) { cleartimer -= Time.deltaTime; }
-        if (cleartimer > 0) { TimerText.text = $"남은 시간  {(int)(cleartimer / 60)} : {(int)(cleartimer % 60)}";}
+        if (cleartimer > 0) { TimerText.text = $"남은 시간  {(int)(cleartimer / 60)} : {(int)(cleartimer % 60)}"; }
         else { TimerText.text = $"남은 시간  0 : 0"; StartCoroutine("C_NextPage"); GameOver(); }
     }
     public IEnumerator Interaction(GameObject myObject, GameObject targetObject)
     {
         float timer = 0;
         StopTime = true;
-        
-        Vector3 firstposition = myObject.transform.position;
-        float sidepos = (firstposition.x - targetObject.transform.position.x > 0 ? 1f : -1f);
+
+        Vector3 firstposition1 = myObject.transform.position;
+        Vector3 firstposition2 = targetObject.transform.position;
+        float sidepos = (firstposition1.x - targetObject.transform.position.x > 0 ? 1f : -1f);
         myObject.transform.rotation = Quaternion.Euler(0, 90 + sidepos * 90, 0);
         targetObject.transform.rotation = Quaternion.Euler(0, 90 + sidepos * -90, 0);
         while (timer < 1)
         {
-            myObject.transform.position = Vector3.Lerp(firstposition, targetObject.transform.position + new Vector3(3f * sidepos, 0, 0), timer);
+            myObject.transform.position = Vector3.Lerp(firstposition1, new Vector3(1.5f*sidepos,0,0), timer);
+            targetObject.transform.position = Vector3.Lerp(firstposition2,  new Vector3(1.5f * -sidepos, 0, 0), timer);
             timer += Time.deltaTime * 2;
             yield return null;
         }
-        switch (Random.Range(0,4))
+        switch (Random.Range(0, 4))
         {
             case 0:
                 #region 음식 생각
                 int ChatCont = Random.Range(0, ChatContents.Count);
-                GameObject ChatBox = Instantiate(ChatBalloon[1], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
-                GameObject Chatting = Instantiate(ChatContents[ChatCont], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
+                GameObject ChatBox = Instantiate(ChatBalloon[1], myObject.transform.position + new Vector3(ChatPos[0] * sidepos, ChatPos[1], 0), myObject.transform.rotation);
+                GameObject Chatting = Instantiate(ChatContents[ChatCont], myObject.transform.position + new Vector3(ChatContPos[0] * sidepos, ChatContPos[1], 0),myObject.transform.rotation);
+                Debug.Log(myObject.transform.rotation.eulerAngles);
+                Debug.Log(ChatBox.transform.rotation.eulerAngles);
                 yield return new WaitForSeconds(2.5f);
                 Destroy(ChatBox.gameObject);
                 Destroy(Chatting.gameObject);
@@ -102,21 +110,21 @@ public class InGameManager : MonoBehaviour
                 fruit.transform.DOLocalMove((myObject.transform.position + new Vector3(1 * -sidepos, -1, 0)), 1f, false).SetEase(Ease.OutBounce);
                 fruit2.transform.DOLocalMove((myObject.transform.position + new Vector3(2 * -sidepos, -1, 0)), 1.1f, false).SetEase(Ease.OutBounce);
                 yield return new WaitForSeconds(1f);
-                ChatBox = Instantiate(ChatBalloon[0], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
-                Chatting = Instantiate(Chatsurve[2], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
+                ChatBox = Instantiate(ChatBalloon[0], myObject.transform.position + new Vector3(ChatPos[0] * sidepos,ChatPos[1], 0), myObject.transform.rotation);
+                Chatting = Instantiate(Chatsurve[2], myObject.transform.position + new Vector3(ChatContPos[0] * sidepos, ChatContPos[1], 0), myObject.transform.rotation);
                 yield return new WaitForSeconds(1f);
                 Destroy(ChatBox.gameObject);
                 Destroy(Chatting.gameObject);
                 yield return new WaitForSeconds(0.5f);
-                ChatBox = Instantiate(ChatBalloon[0], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
-                Chatting = Instantiate(ChatContentsGroup[0], myObject.transform.position + new Vector3(1.5f * sidepos, 1.5f, 0), transform.rotation);
+                ChatBox = Instantiate(ChatBalloon[0], myObject.transform.position + new Vector3(ChatPos[0] * sidepos, ChatPos[1], 0), myObject.transform.rotation);
+                Chatting = Instantiate(ChatContentsGroup[0], myObject.transform.position + new Vector3(ChatContPos[0] * sidepos, ChatContPos[1], 0), myObject.transform.rotation);
                 yield return new WaitForSeconds(1.5f);
                 GameObject ChatBox2;
                 GameObject Chatting2;
                 if (Random.Range(0, 2) == 0)
                 {
-                    ChatBox2 = Instantiate(ChatBalloon[0], targetObject.transform.position + new Vector3(1.5f * -sidepos, 1f, 0), transform.rotation);
-                    Chatting2 = Instantiate(Chatsurve[0], targetObject.transform.position + new Vector3(1.5f * -sidepos, 1f, 0), transform.rotation);
+                    ChatBox2 = Instantiate(ChatBalloon[0], targetObject.transform.position+ new Vector3(ChatPos[0] * -sidepos, ChatPos[1], 0), targetObject.transform.rotation);
+                    Chatting2 = Instantiate(Chatsurve[0], targetObject.transform.position + new Vector3(ChatContPos[0] * -sidepos, ChatContPos[1], 0), targetObject.transform.rotation);
                     yield return new WaitForSeconds(2f);
                     Destroy(ChatBox.gameObject);
                     Destroy(Chatting.gameObject);
@@ -138,8 +146,8 @@ public class InGameManager : MonoBehaviour
                 }//수락
                 else
                 {
-                    ChatBox2 = Instantiate(ChatBalloon[0], targetObject.transform.position + new Vector3(1.5f * -sidepos, 1f, 0), transform.rotation);
-                    Chatting2 = Instantiate(Chatsurve[1], targetObject.transform.position + new Vector3(1.5f * -sidepos, 1f, 0), transform.rotation);
+                    ChatBox2 = Instantiate(ChatBalloon[0], targetObject.transform.position + new Vector3(ChatPos[0] * -sidepos, ChatPos[1], 0), targetObject.transform.rotation);
+                    Chatting2 = Instantiate(Chatsurve[1], targetObject.transform.position + new Vector3(ChatContPos[0] * -sidepos, ChatContPos[1], 0),targetObject.transform.rotation);
                     yield return new WaitForSeconds(1f);
                     GameObject Sad = Instantiate(Chatsurve[3], myObject.transform.position + Vector3.up * 0.5f, transform.rotation);
                     yield return new WaitForSeconds(1f);
@@ -186,16 +194,16 @@ public class InGameManager : MonoBehaviour
             case 2:
                 #region 춤1
                 timer = 0;
-                for(int i = 0;i<7;i++)
+                for (int i = 0; i < 7; i++)
                 {
-                    if(i<2)
+                    if (i < 2)
                     {
                         myObject.transform.DOScaleY(0.8f, 0.1f);
                         yield return new WaitForSeconds(0.1f);
-                        myObject.transform.DOScaleY(1.2f,0.2f);
+                        myObject.transform.DOScaleY(1.2f, 0.2f);
                         yield return new WaitForSeconds(0.2f);
                         myObject.transform.DOScaleY(1f, 0.1f);
-                        yield return new WaitForSeconds(0.1f);  
+                        yield return new WaitForSeconds(0.1f);
                     }
                     else
                     {
@@ -215,25 +223,32 @@ public class InGameManager : MonoBehaviour
                 break;
             case 3:
                 #region 춤 2
-                myObject.transform.DORotate(new Vector3(0,0,20),0.25f);
-                targetObject.transform.DORotate(new Vector3(0,0,20),0.25f);
+                myObject.transform.DORotate(new Vector3(0, 0, 20), 0.25f);
+                targetObject.transform.DORotate(new Vector3(0, 0, 20), 0.25f);
                 yield return new WaitForSeconds(0.25f);
-                for(int i =0;i<3;i++)
+                for (int i = 0; i < 3; i++)
                 {
-                myObject.transform.DORotate(new Vector3(0,0,-20),0.5f);
-                targetObject.transform.DORotate(new Vector3(0,0,-20),0.5f);
-                yield return new WaitForSeconds(0.5f);
-                myObject.transform.DORotate(new Vector3(0,0,20),0.5f);
-                targetObject.transform.DORotate(new Vector3(0,0,20),0.5f);
-                yield return new WaitForSeconds(0.5f);
+                    myObject.transform.DORotate(new Vector3(0, 0, -20), 0.5f);
+                    targetObject.transform.DORotate(new Vector3(0, 0, -20), 0.5f);
+                    yield return new WaitForSeconds(0.5f);
+                    myObject.transform.DORotate(new Vector3(0, 0, 20), 0.5f);
+                    targetObject.transform.DORotate(new Vector3(0, 0, 20), 0.5f);
+                    yield return new WaitForSeconds(0.5f);
                 }
-                myObject.transform.DORotate(new Vector3(0,0,0),0.25f);
-                targetObject.transform.DORotate(new Vector3(0,0,0),0.25f);
+                myObject.transform.DORotate(new Vector3(0, 0, 0), 0.25f);
+                targetObject.transform.DORotate(new Vector3(0, 0, 0), 0.25f);
                 yield return new WaitForSeconds(0.25f);
                 #endregion
                 break;
         }//행동 랜덤 뽑기
-        targetObject.GetComponent<Drag>().ExitScreen();
+        timer = 0;
+        while (timer < 1)
+        {
+            myObject.transform.position = Vector3.Lerp(new Vector3(1.5f * sidepos, 0, 0), firstposition1,  timer);
+            targetObject.transform.position = Vector3.Lerp(new Vector3(1.5f * -sidepos, 0, 0), firstposition2, timer);
+            timer += Time.deltaTime * 3;
+            yield return null;
+        }
         StopTime = false;
         yield return null;
     }//상호작용
@@ -336,23 +351,23 @@ public class InGameManager : MonoBehaviour
         PausePanel.transform.DOLocalMove(Vector3.zero, 1).SetEase(Ease.OutBack);
         while (timer < 1)
         {
-            timer += Time.deltaTime*2;
+            timer += Time.deltaTime * 2;
             Panel.GetComponent<Image>().color = new Color(0, 0, 0, Mathf.Lerp(0, 0.5f, timer));
             yield return null;
         }
         yield return null;
     }
-     public void CountinueButton()
+    public void CountinueButton()
     {
         StartCoroutine("Countinue");
     }
     public IEnumerator Countinue()
     {
         float timer = 0;
-        PausePanel.transform.DOLocalMove(Vector3.up*1025, 1).SetEase(Ease.OutBack);
+        PausePanel.transform.DOLocalMove(Vector3.up * 1025, 1).SetEase(Ease.OutBack);
         while (timer < 1)
         {
-            timer += Time.deltaTime*2;
+            timer += Time.deltaTime * 2;
             Panel.GetComponent<Image>().color = new Color(0, 0, 0, Mathf.Lerp(0, 0f, timer));
             yield return null;
         }
