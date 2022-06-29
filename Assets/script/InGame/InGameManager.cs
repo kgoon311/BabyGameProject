@@ -9,11 +9,11 @@ public class InGameManager : MonoBehaviour
     public static InGameManager Instence { get; set; }
     [Header("Canvas")]
     [SerializeField] private Text TimerText;
-    [SerializeField] private GameObject Panel;
     [SerializeField] private GameObject NextPageButton;
     [SerializeField] GameObject ClearPage;
-    [SerializeField] GameObject PausePanel;
     private List<GameObject> ClearPageGroup = new List<GameObject>();
+    [SerializeField] GameObject PausePanel;
+
     //0.BC / 1.Star / 2.Next / 3.Home/ 4.ReGame
     [Header("Chat")]
     [SerializeField] private GameObject[] ChatBalloon;
@@ -26,8 +26,6 @@ public class InGameManager : MonoBehaviour
     [SerializeField] private GameObject Shadow;
     private List<GameObject> ShapeGroup = new List<GameObject>();
     private List<GameObject> ShadowGroup = new List<GameObject>();
-    public bool StopTime;
-
 
     [SerializeField] float[] ChatPos = new float[2];
     [SerializeField] float[] ChatContPos = new float[2];
@@ -54,6 +52,7 @@ public class InGameManager : MonoBehaviour
     void Awake()
     {
         Instence = this;
+        SoundManager.In.PlaySound($"{GMManger.In.stage}Stage",SoundType.BGM,1,1);
         for (int i = 0; i < ClearPage.transform.childCount; i++)
         {
             ClearPageGroup.Add(ClearPage.transform.GetChild(i).gameObject);
@@ -67,18 +66,19 @@ public class InGameManager : MonoBehaviour
     }
     private void Start()
     {
+       
         StartCoroutine(StartFadeOut());
     }
     private void Update()
     {
-        if (clearcount != 5 && StopTime == false) { cleartimer -= Time.deltaTime; }
+        if (clearcount != 5 && GMManger.In.StopTime == false) { cleartimer -= Time.deltaTime; }
         if (cleartimer > 0) { TimerText.text = $"남은 시간  {(int)(cleartimer / 60)} : {(int)(cleartimer % 60)}"; }
         else { TimerText.text = $"남은 시간  0 : 0"; StartCoroutine("C_NextPage"); GameOver(); }
     }
     public IEnumerator Interaction(GameObject myObject, GameObject targetObject)
     {
         float timer = 0;
-        StopTime = true;
+        GMManger.In.StopTime = true;
 
         Vector3 firstposition1 = myObject.transform.position;
         Vector3 firstposition2 = targetObject.transform.position;
@@ -87,12 +87,17 @@ public class InGameManager : MonoBehaviour
         targetObject.transform.rotation = Quaternion.Euler(0, 90 + sidepos * -90, 0);
         while (timer < 1)
         {
-            myObject.transform.position = Vector3.Lerp(firstposition1, new Vector3(1.5f*sidepos,0,0), timer);
-            targetObject.transform.position = Vector3.Lerp(firstposition2,  new Vector3(1.5f * -sidepos, 0, 0), timer);
+            myObject.transform.position = Vector3.Lerp(firstposition1, new Vector3(2*sidepos,0,0), timer);
+            targetObject.transform.position = Vector3.Lerp(firstposition2,  new Vector3(2f * -sidepos, 0, 0), timer);
+            myObject.transform.localScale = Vector3.Lerp(Vector3.one, Vector3.one * 1.2f, timer);
+            targetObject.transform.localScale = Vector3.Lerp(Vector3.one, Vector3.one * 1.2f, timer);
             timer += Time.deltaTime * 2;
             yield return null;
         }
-        switch (Random.Range(0, 4))
+        int[] saveoderlayer = {myObject.GetComponent<SpriteRenderer>().sortingOrder , targetObject.GetComponent<SpriteRenderer>().sortingOrder};
+        myObject.GetComponent<SpriteRenderer>().sortingOrder = 10;
+        targetObject.GetComponent<SpriteRenderer>().sortingOrder = 10;
+        switch (Random.Range(0, 1))
         {
             case 0:
                 #region 음식 생각
@@ -105,10 +110,10 @@ public class InGameManager : MonoBehaviour
                 Destroy(ChatBox.gameObject);
                 Destroy(Chatting.gameObject);
                 yield return new WaitForSeconds(1f);
-                GameObject fruit = Instantiate(ChatContents[ChatCont], myObject.transform.position + new Vector3(1f * -sidepos, 10f, 0), transform.rotation);
-                GameObject fruit2 = Instantiate(ChatContents[ChatCont], myObject.transform.position + new Vector3(2f * -sidepos, 11f, 0), transform.rotation);
-                fruit.transform.DOLocalMove((myObject.transform.position + new Vector3(1 * -sidepos, -1, 0)), 1f, false).SetEase(Ease.OutBounce);
-                fruit2.transform.DOLocalMove((myObject.transform.position + new Vector3(2 * -sidepos, -1, 0)), 1.1f, false).SetEase(Ease.OutBounce);
+                GameObject fruit = Instantiate(ChatContents[ChatCont], myObject.transform.position + new Vector3(1.5f * -sidepos, 10f, 0), transform.rotation);
+                GameObject fruit2 = Instantiate(ChatContents[ChatCont], myObject.transform.position + new Vector3(2.5f * -sidepos, 11f, 0), transform.rotation);
+                fruit.transform.DOLocalMove((myObject.transform.position + new Vector3(1.5f * -sidepos, -1, 0)), 1f, false).SetEase(Ease.OutBounce);
+                fruit2.transform.DOLocalMove((myObject.transform.position + new Vector3(2.5f * -sidepos, -1, 0)), 1.1f, false).SetEase(Ease.OutBounce);
                 yield return new WaitForSeconds(1f);
                 ChatBox = Instantiate(ChatBalloon[0], myObject.transform.position + new Vector3(ChatPos[0] * sidepos,ChatPos[1], 0), myObject.transform.rotation);
                 Chatting = Instantiate(Chatsurve[2], myObject.transform.position + new Vector3(ChatContPos[0] * sidepos, ChatContPos[1], 0), myObject.transform.rotation);
@@ -137,7 +142,7 @@ public class InGameManager : MonoBehaviour
                     {
                         fruit.GetComponent<SpriteRenderer>().color -= new Color(0, 0, 0, timer);
                         fruit2.GetComponent<SpriteRenderer>().color -= new Color(0, 0, 0, timer);
-                        timer += Time.deltaTime;
+                        timer += Time.deltaTime/2;
                         yield return null;
                     }
                     yield return new WaitForSeconds(0.5f);
@@ -149,7 +154,7 @@ public class InGameManager : MonoBehaviour
                     ChatBox2 = Instantiate(ChatBalloon[0], targetObject.transform.position + new Vector3(ChatPos[0] * -sidepos, ChatPos[1], 0), targetObject.transform.rotation);
                     Chatting2 = Instantiate(Chatsurve[1], targetObject.transform.position + new Vector3(ChatContPos[0] * -sidepos, ChatContPos[1], 0),targetObject.transform.rotation);
                     yield return new WaitForSeconds(1f);
-                    GameObject Sad = Instantiate(Chatsurve[3], myObject.transform.position + Vector3.up * 0.5f, transform.rotation);
+                    GameObject Sad = Instantiate(Chatsurve[3], myObject.transform.position + Vector3.up * 0.5f + Vector3.left*0.2f, transform.rotation);
                     yield return new WaitForSeconds(1f);
                     Destroy(ChatBox.gameObject);
                     Destroy(Chatting.gameObject);
@@ -244,12 +249,16 @@ public class InGameManager : MonoBehaviour
         timer = 0;
         while (timer < 1)
         {
-            myObject.transform.position = Vector3.Lerp(new Vector3(1.5f * sidepos, 0, 0), firstposition1,  timer);
-            targetObject.transform.position = Vector3.Lerp(new Vector3(1.5f * -sidepos, 0, 0), firstposition2, timer);
-            timer += Time.deltaTime * 3;
+            myObject.transform.position = Vector3.Lerp(new Vector3(2f * sidepos, 0, 0), firstposition1,  timer);
+            targetObject.transform.position = Vector3.Lerp(new Vector3(2f * -sidepos, 0, 0), firstposition2, timer);
+            myObject.transform.localScale = Vector3.Lerp(Vector3.one*1.2f, Vector3.one, timer);
+            targetObject.transform.localScale = Vector3.Lerp(Vector3.one*1.2f, Vector3.one, timer);
+            timer += Time.deltaTime * 2;
             yield return null;
         }
-        StopTime = false;
+        myObject.GetComponent<SpriteRenderer>().sortingOrder = saveoderlayer[0];
+        targetObject.GetComponent<SpriteRenderer>().sortingOrder = saveoderlayer[1];
+        GMManger.In.StopTime = false;
         yield return null;
     }//상호작용
     public void OrderLayer()
@@ -271,19 +280,19 @@ public class InGameManager : MonoBehaviour
         StartCoroutine(GMManger.In.FadeOut(1f));
         yield return null;
     }
-
-    #region EndPage
+    #region End
     public void NextPage()
     {
         if (pushNextbutton == false)
         {
+            SoundManager.In.PlaySound("Button", SoundType.SE, 1, 1);
             StartCoroutine("C_NextPage");
             pushNextbutton = true;
         }
     }//클리어 후 버튼
     private void GameOver()
     {
-        if (Over == true)
+        if (Over != true)
             StartCoroutine("C_NextPage");
         Over = true;
     }//시간초과
@@ -299,14 +308,7 @@ public class InGameManager : MonoBehaviour
             GMManger.In.ClearStar[GMManger.In.stage - 1, i] = true;
         }
         yield return new WaitForSeconds(0.5f);
-        Panel.SetActive(true);
-        float timer = 0;
-        while (timer < 1)
-        {
-            timer += Time.deltaTime;
-            Image PanelImage = Panel.GetComponent<Image>();
-            Panel.GetComponent<Image>().color = new Color();
-        }
+        GMManger.In.FadeIn(0.5f);       
         yield return new WaitForSeconds(0.5f);
         ClearPageGroup[0].transform.DOLocalMove(Vector3.zero, 1f, false).SetEase(Ease.OutBounce);
         yield return new WaitForSeconds(1f);
@@ -323,57 +325,26 @@ public class InGameManager : MonoBehaviour
         yield return null;
     }//클리어창 애니메이션
     #endregion
-
-    #region ButtonScript
+    #region Button
     public void Home()
     {
         SceneManager.LoadScene(0);
-    }
-    public void NextStage()
-    {
-        SceneManager.LoadScene(GMManger.In.stage += 1);
+        SoundManager.In.PlaySound("Button", SoundType.SE, 1, 1);
     }
     public void ReGame()
     {
         SceneManager.LoadScene(GMManger.In.stage);
+        SoundManager.In.PlaySound("Button", SoundType.SE, 1, 1);
     }
-    #endregion
-
     public void PauseButton()
     {
-        StartCoroutine("Pause");
+        GMManger.In.StartCoroutine("Pause");
+        SoundManager.In.PlaySound("Button", SoundType.SE, 1, 1);
     }
-    public IEnumerator Pause()
+    public void NextGame()
     {
-        StopTime = true;
-        float timer = 0;
-        Panel.SetActive(true);
-        PausePanel.transform.DOLocalMove(Vector3.zero, 1).SetEase(Ease.OutBack);
-        while (timer < 1)
-        {
-            timer += Time.deltaTime * 2;
-            Panel.GetComponent<Image>().color = new Color(0, 0, 0, Mathf.Lerp(0, 0.5f, timer));
-            yield return null;
-        }
-        yield return null;
+        SceneManager.LoadScene(GMManger.In.stage);
+        SoundManager.In.PlaySound("Button", SoundType.SE, 1, 1);
     }
-    public void CountinueButton()
-    {
-        StartCoroutine("Countinue");
-    }
-    public IEnumerator Countinue()
-    {
-        float timer = 0;
-        PausePanel.transform.DOLocalMove(Vector3.up * 1025, 1).SetEase(Ease.OutBack);
-        while (timer < 1)
-        {
-            timer += Time.deltaTime * 2;
-            Panel.GetComponent<Image>().color = new Color(0, 0, 0, Mathf.Lerp(0, 0f, timer));
-            yield return null;
-        }
-        Panel.SetActive(false);
-        StopTime = false;
-        yield return null;
-    }
-
+    #endregion
 }

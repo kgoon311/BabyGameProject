@@ -9,15 +9,19 @@ public class TitleManager : MonoBehaviour
 {
     [Header("타이틀")]
     [SerializeField] private GameObject Title;
-    [SerializeField] private GameObject ClickText;
     public bool ScreenTouch;
 
     [Header("스테이지")]
-    private int LastClearStage;
     [SerializeField] private GameObject StagePanel;
     [SerializeField] private GameObject StageGroup;
+    private int LastClearStage;
+
+    [Header("스테이지")]
+    [SerializeField] private Button SettingButton;
     void Start()
     {
+        SoundManager.In.PlaySound("title", SoundType.BGM, 1, 1);
+        SettingButton.onClick.AddListener(GMManger.In.PauseButton);
         Title.transform.DOScale(Vector3.one, 1).SetEase(Ease.InQuint);
         LastClearStage = GMManger.In.LastClear;
         for (int i = 0; i <= LastClearStage;i++)
@@ -29,27 +33,15 @@ public class TitleManager : MonoBehaviour
                         StageGroup.transform.GetChild(i).GetChild(1).GetChild(j).GetComponent<Image>().color = new Color(255,255,255);
                 }
         }
-        StartCoroutine(TextMove());
     }
-    void Update()
+    public void StageDown()
     {
-        if(Input.GetMouseButtonDown(0))
+        if (ScreenTouch == false)
         {
-            if (ScreenTouch == false)
-            {
-                ScreenTouch = true;
-                StagePanel.transform.DOLocalMove(Vector3.zero, 1f, false).SetEase(Ease.OutBounce);
-            }
+            SoundManager.In.PlaySound("Button", SoundType.SE, 1, 1);
+            ScreenTouch = true;
+            StagePanel.transform.DOLocalMove(Vector3.zero, 1f, false).SetEase(Ease.OutBounce);
         }
-    }
-    
-    private IEnumerator TextMove()
-    {
-        ClickText.transform.DOLocalMove(new Vector3(0, -360, 0),2f,false);
-        yield return new WaitForSeconds(2f);
-        ClickText.transform.DOLocalMove(new Vector3(0, -320, 0),2f,false);
-        yield return new WaitForSeconds(2f);
-        yield return StartCoroutine(TextMove());
     }
     public void Click(int stage)
     {

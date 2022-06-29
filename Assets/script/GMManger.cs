@@ -11,8 +11,10 @@ public class GMManger : SingletonMono<GMManger>
     public int LastClear =0;
     public bool[,] ClearStar = new bool[4,3];
     public int stage;
-                                                         
-    private void Start()
+    public bool StopTime;
+
+    [SerializeField] GameObject PausePanel;
+    protected override void OnAwake()
     {
         FadePanel = GameObject.Find("FadePanel");
         FadePanel.SetActive(false);
@@ -41,5 +43,38 @@ public class GMManger : SingletonMono<GMManger>
         FadePanel.SetActive(false);
         yield return null;
     }
-  
+    #region Button
+   
+    public void PauseButton()
+    {
+        StartCoroutine("Pause");
+        SoundManager.In.PlaySound("Button", SoundType.SE, 1, 1);
+    }
+    public IEnumerator Pause()
+    {
+        StopTime = true;
+        FadeIn(0.5f);
+        PausePanel.transform.DOLocalMove(Vector3.zero, 1).SetEase(Ease.OutBack);
+        yield return null;
+    }
+    public void CountinueButton()
+    {
+        StartCoroutine("Countinue");
+        SoundManager.In.PlaySound("Button", SoundType.SE, 1, 1);
+    }
+    public IEnumerator Countinue()
+    {
+        float timer = 0;
+        PausePanel.transform.DOLocalMove(Vector3.up * 1025, 1).SetEase(Ease.OutBack);
+        while (timer < 1)
+        {
+            timer += Time.deltaTime * 2;
+            FadePanel.GetComponent<Image>().color = new Color(0, 0, 0, Mathf.Lerp(0, 0f, timer));
+            yield return null;
+        }
+        FadePanel.SetActive(false);
+        StopTime = false;
+        yield return null;
+    }
+    #endregion
 }

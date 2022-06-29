@@ -8,7 +8,7 @@ public enum SoundType
     BGM,
     END
 }
-public class SoundManager : Singleton<SoundManager>
+public class SoundManager : SingletonMono<SoundManager>
 {
     Dictionary<string, AudioClip> sounds = new Dictionary<string, AudioClip>();
     Dictionary<SoundType, float> Volumes = new Dictionary<SoundType, float>() { { SoundType.SE, 1 }, { SoundType.BGM, 1 } };
@@ -16,7 +16,7 @@ public class SoundManager : Singleton<SoundManager>
     [SerializeField] Slider BgmVolume;
     [SerializeField] Slider SeVolume;
 
-    protected void Awake()
+    protected override void OnAwake()
     {
         GameObject Se = new GameObject();
         Se.transform.parent = transform;
@@ -37,20 +37,17 @@ public class SoundManager : Singleton<SoundManager>
         if (ClipType == SoundType.BGM)
         {
             AudioSources[SoundType.BGM].clip = sounds[clipName];
-            AudioSources[SoundType.BGM].volume *= Volume;
-            Volumes[SoundType.BGM] = AudioSources[SoundType.BGM].volume;
+            Volumes[SoundType.BGM] = Volume;
             AudioSources[SoundType.BGM].Play();
         }
         else
         {
             AudioSources[ClipType].pitch = Pitch;
-            Volumes[SoundType.SE] = Volume;
-            AudioSources[ClipType].PlayOneShot(sounds[clipName], Volume);
+            AudioSources[ClipType].PlayOneShot(sounds[clipName], Volume * SeVolume.value);
         }
     }
     private void Update()
     {
         AudioSources[SoundType.BGM].volume = Volumes[SoundType.BGM] * BgmVolume.value;
-        AudioSources[SoundType.SE].volume = Volumes[SoundType.SE] * SeVolume.value;
     }
 }

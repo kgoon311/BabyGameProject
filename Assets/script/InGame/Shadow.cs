@@ -13,13 +13,13 @@ public class Shadow : MonoBehaviour
     }
     private void Update()
     {
-        if (InGameManager.Instence.StopTime == true)
+        if (GMManger.In.StopTime == true)
             rg.velocity = Vector3.zero;
     }
     //-11,3.5
     private IEnumerator MoveShadow()
     {
-        if (InGameManager.Instence.StopTime == false)
+        if (GMManger.In.StopTime == false)
         {
             while (movecount == 0)
                 movecount = Random.Range(-2, 3);
@@ -28,7 +28,7 @@ public class Shadow : MonoBehaviour
             else
                 transform.rotation = new Quaternion(0, 0, 0, 0);
             float timer = 0;
-            while (timer < 1&&InGameManager.Instence.StopTime == false)
+            while (timer < 1&&GMManger.In.StopTime == false)
             {
                 rg.velocity = new Vector3(movecount, 0, 0) * timer;
                 timer += Time.deltaTime / 2;
