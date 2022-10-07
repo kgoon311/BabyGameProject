@@ -11,7 +11,6 @@ public class InGameManager : MonoBehaviour
     [SerializeField] private Text TimerText;
     [SerializeField] private GameObject NextPageButton;
     [SerializeField] GameObject ClearPage;
-    private List<GameObject> ClearPageGroup = new List<GameObject>();
     [SerializeField] GameObject PausePanel;
 
     //0.BC / 1.Star / 2.Next / 3.Home/ 4.ReGame
@@ -53,10 +52,6 @@ public class InGameManager : MonoBehaviour
     {
         Instence = this;
         SoundManager.In.PlaySound($"{GMManger.In.stage}Stage",SoundType.BGM,1,1);
-        for (int i = 0; i < ClearPage.transform.childCount; i++)
-        {
-            ClearPageGroup.Add(ClearPage.transform.GetChild(i).gameObject);
-        }
         for (int i = 0; i < 5; i++)
         {
             ShapeGroup.Add(Shape.transform.GetChild(i).gameObject);
@@ -97,15 +92,13 @@ public class InGameManager : MonoBehaviour
         int[] saveoderlayer = {myObject.GetComponent<SpriteRenderer>().sortingOrder , targetObject.GetComponent<SpriteRenderer>().sortingOrder};
         myObject.GetComponent<SpriteRenderer>().sortingOrder = 10;
         targetObject.GetComponent<SpriteRenderer>().sortingOrder = 10;
-        switch (Random.Range(0, 1))
+        switch (Random.Range(0,4))
         {
             case 0:
                 #region 음식 생각
                 int ChatCont = Random.Range(0, ChatContents.Count);
                 GameObject ChatBox = Instantiate(ChatBalloon[1], myObject.transform.position + new Vector3(ChatPos[0] * sidepos, ChatPos[1], 0), myObject.transform.rotation);
                 GameObject Chatting = Instantiate(ChatContents[ChatCont], myObject.transform.position + new Vector3(ChatContPos[0] * sidepos, ChatContPos[1], 0),myObject.transform.rotation);
-                Debug.Log(myObject.transform.rotation.eulerAngles);
-                Debug.Log(ChatBox.transform.rotation.eulerAngles);
                 yield return new WaitForSeconds(2.5f);
                 Destroy(ChatBox.gameObject);
                 Destroy(Chatting.gameObject);
@@ -116,7 +109,7 @@ public class InGameManager : MonoBehaviour
                 fruit2.transform.DOLocalMove((myObject.transform.position + new Vector3(2.5f * -sidepos, -1, 0)), 1.1f, false).SetEase(Ease.OutBounce);
                 yield return new WaitForSeconds(1f);
                 ChatBox = Instantiate(ChatBalloon[0], myObject.transform.position + new Vector3(ChatPos[0] * sidepos,ChatPos[1], 0), myObject.transform.rotation);
-                Chatting = Instantiate(Chatsurve[2], myObject.transform.position + new Vector3(ChatContPos[0] * sidepos, ChatContPos[1], 0), myObject.transform.rotation);
+                Chatting = Instantiate(Chatsurve[2], myObject.transform.position + new Vector3(ChatContPos[0] * sidepos, ChatContPos[1], 0), transform.rotation);
                 yield return new WaitForSeconds(1f);
                 Destroy(ChatBox.gameObject);
                 Destroy(Chatting.gameObject);
@@ -154,7 +147,7 @@ public class InGameManager : MonoBehaviour
                     ChatBox2 = Instantiate(ChatBalloon[0], targetObject.transform.position + new Vector3(ChatPos[0] * -sidepos, ChatPos[1], 0), targetObject.transform.rotation);
                     Chatting2 = Instantiate(Chatsurve[1], targetObject.transform.position + new Vector3(ChatContPos[0] * -sidepos, ChatContPos[1], 0),targetObject.transform.rotation);
                     yield return new WaitForSeconds(1f);
-                    GameObject Sad = Instantiate(Chatsurve[3], myObject.transform.position + Vector3.up * 0.5f + Vector3.left*0.2f, transform.rotation);
+                    GameObject Sad = Instantiate(Chatsurve[3], myObject.transform.position + Vector3.up * 0.5f + Vector3.left*0.5f* sidepos, transform.rotation);
                     yield return new WaitForSeconds(1f);
                     Destroy(ChatBox.gameObject);
                     Destroy(Chatting.gameObject);
@@ -251,8 +244,8 @@ public class InGameManager : MonoBehaviour
         {
             myObject.transform.position = Vector3.Lerp(new Vector3(2f * sidepos, 0, 0), firstposition1,  timer);
             targetObject.transform.position = Vector3.Lerp(new Vector3(2f * -sidepos, 0, 0), firstposition2, timer);
-            myObject.transform.localScale = Vector3.Lerp(Vector3.one*1.2f, Vector3.one, timer);
-            targetObject.transform.localScale = Vector3.Lerp(Vector3.one*1.2f, Vector3.one, timer);
+            myObject.transform.localScale = Vector3.Lerp(Vector3.one*1.2f, Vector3.one*0.9f, timer);
+            targetObject.transform.localScale = Vector3.Lerp(Vector3.one*1.2f, Vector3.one*0.9f, timer);
             timer += Time.deltaTime * 2;
             yield return null;
         }
@@ -288,6 +281,7 @@ public class InGameManager : MonoBehaviour
             SoundManager.In.PlaySound("Button", SoundType.SE, 1, 1);
             StartCoroutine("C_NextPage");
             pushNextbutton = true;
+            GMManger.In.StopTime = false;
         }
     }//클리어 후 버튼
     private void GameOver()
@@ -307,19 +301,15 @@ public class InGameManager : MonoBehaviour
         {
             GMManger.In.ClearStar[GMManger.In.stage - 1, i] = true;
         }
+        ClearPage.transform.GetChild(4).GetComponent<Text>().text = $"{(int)(cleartimer / 60)} : {(int)(cleartimer % 60)}";
         yield return new WaitForSeconds(0.5f);
         GMManger.In.FadeIn(0.5f);       
         yield return new WaitForSeconds(0.5f);
-        ClearPageGroup[0].transform.DOLocalMove(Vector3.zero, 1f, false).SetEase(Ease.OutBounce);
-        yield return new WaitForSeconds(1f);
-        ClearPageGroup[1].transform.DOLocalMove(new Vector3(0, 300, 0), 1, false).SetEase(Ease.OutBack);
-        ClearPageGroup[2].transform.DOLocalMove(new Vector3(650, -300, 0), 1, false).SetEase(Ease.OutBack);
-        ClearPageGroup[3].transform.DOLocalMove(new Vector3(310, -300, 0), 1, false).SetEase(Ease.OutBack);
-        ClearPageGroup[4].transform.DOLocalMove(new Vector3(480, -300, 0), 1, false).SetEase(Ease.OutBack);
+        ClearPage.transform.DOLocalMove(Vector3.down*1050, 1);//클리어 페이지 중간으로 이동
         yield return new WaitForSeconds(1f);
         for (int i = 0; /*i < savestar&&*/i <= clearcount / 2; i++)
         {
-            ClearPageGroup[1].transform.GetChild(i + 3).DOScale(Vector3.one, 0.6f);
+            ClearPage.transform.GetChild(1).transform.GetChild(i + 3).DOScale(Vector3.one, 0.6f);
             yield return new WaitForSeconds(0.6f);
         }
         yield return null;
@@ -330,11 +320,13 @@ public class InGameManager : MonoBehaviour
     {
         SceneManager.LoadScene(0);
         SoundManager.In.PlaySound("Button", SoundType.SE, 1, 1);
+        GMManger.In.StopTime = false;
     }
     public void ReGame()
     {
         SceneManager.LoadScene(GMManger.In.stage);
         SoundManager.In.PlaySound("Button", SoundType.SE, 1, 1);
+        GMManger.In.StopTime = false;
     }
     public void PauseButton()
     {
@@ -343,8 +335,9 @@ public class InGameManager : MonoBehaviour
     }
     public void NextGame()
     {
-        SceneManager.LoadScene(GMManger.In.stage);
+        SceneManager.LoadScene(GMManger.In.LastClear +1);
         SoundManager.In.PlaySound("Button", SoundType.SE, 1, 1);
+        GMManger.In.stage++;
     }
     #endregion
 }
